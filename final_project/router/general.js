@@ -106,24 +106,35 @@ public_users.get('/author/:author', async function (req, res) {
   }
 });
 
-// Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  //Write your code here
+// Get all books based on title using async-await
+public_users.get('/title/:title', async function (req, res) {
   const title = req.params.title;
-  let result = {};
 
-  Object.keys(books).forEach((isbn) => {
-    if (books[isbn].title === title) {
-      result[isbn] = books[isbn];
-    }
-  });
+  try {
+    const getBooksByTitle = new Promise((resolve, reject) => {
+      let result = {};
 
-  if (Object.keys(result).length > 0) {
-    return res.status(200).send(JSON.stringify(result, null, 4));
-  } else {
-    return res.status(404).json({ message: "No books found with this title" });
+      Object.keys(books).forEach((isbn) => {
+        if (books[isbn].title === title) {
+          result[isbn] = books[isbn];
+        }
+      });
+
+      if (Object.keys(result).length > 0) {
+        resolve(result);
+      } else {
+        reject("No books found with this title");
+      }
+    });
+
+    const booksByTitle = await getBooksByTitle;
+
+    return res.status(200).send(JSON.stringify(booksByTitle, null, 4));
+  } catch (error) {
+    return res.status(404).json({
+      message: error
+    });
   }
-  //return res.status(300).json({message: "Yet to be implemented"});
 });
 
 //  Get book review
